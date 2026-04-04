@@ -133,11 +133,20 @@ O usuário pode escolher três parâmetros:
 
 O impacto direto mede o custo mensal da jornada **CLT** acima do limiar escolhido, restrito à **Administração direta e indireta municipal**:
 
-$$\text{Impacto direto}_m = \sum_{j \in \text{CLT, adm}} \text{massa\_salarial\_excedente}_{j,\ \theta}$$
+$$\text{Impacto direto}_m = \left(\sum_{j \in \text{CLT, adm}} \text{massa\_salarial\_excedente}_{j,\ \theta}\right) \times 13{,}3$$
 
 onde $\theta \in \{36h, 40h\}$ é o limiar escolhido e a soma é sobre todos os vínculos CLT da administração direta e indireta do município $m$.
 
-**Interpretação**: representa o quanto a folha de pagamento mensal das prefeituras aumentaria para compensar as horas hoje trabalhadas além do limiar, se a jornada máxima fosse reduzida ao limiar escolhido.
+O fator **13,3** anualizador é composto por:
+
+| Componente | Meses equivalentes |
+|---|---|
+| 12 meses de salário | 12,0 |
+| Décimo terceiro salário | 1,0 |
+| Adicional de férias (1/3 de 1 salário) | 0,333 |
+| **Total** | **13,3** |
+
+**Interpretação**: representa o custo fiscal **anual** adicional que as prefeituras teriam para compensar as horas hoje trabalhadas além do limiar, considerando todos os encargos salariais obrigatórios, se a jornada máxima fosse reduzida ao limiar escolhido.
 
 > Somente vínculos CLT são incluídos porque a legislação que limita jornadas por escala de trabalho (6×1) afeta tipicamente contratos celetistas; servidores estatutários têm jornada definida em estatuto próprio.
 
@@ -165,7 +174,7 @@ onde:
 
 $$\text{Total}_m = \text{Impacto direto}_m + \text{Impacto indireto}_m$$
 
-Este valor representa uma estimativa do aumento do custo fiscal mensal do município $m$ decorrente da implantação da escala 6×1 com o limiar de jornada escolhido.
+Este valor representa uma estimativa do aumento do custo fiscal **anual** do município $m$ decorrente da implantação da escala 6×1 com o limiar de jornada escolhido. O impacto direto já inclui o fator 13,3 (anualização completa com 13º e adicional de férias); o impacto indireto baseia-se na despesa anual de terceirização do SICONFI.
 
 ---
 

@@ -1774,16 +1774,44 @@ direto</h2>
 <p>O impacto direto mede o custo mensal da jornada <strong>CLT</strong>
 acima do limiar escolhido, restrito à <strong>Administração direta e
 indireta municipal</strong>:</p>
-<p><span class="math display">\[\text{Impacto direto}_m = \sum_{j \in
-\text{CLT, adm}} \text{massa\_salarial\_excedente}_{j,\
-\theta}\]</span></p>
+<p><span class="math display">\[\text{Impacto direto}_m = \left(\sum_{j
+\in \text{CLT, adm}} \text{massa\_salarial\_excedente}_{j,\
+\theta}\right) \times 13{,}3\]</span></p>
 <p>onde <span class="math inline">\(\theta \in \{36h, 40h\}\)</span> é o
 limiar escolhido e a soma é sobre todos os vínculos CLT da administração
 direta e indireta do município <span class="math inline">\(m\)</span>.</p>
-<p><strong>Interpretação</strong>: representa o quanto a folha de
-pagamento mensal das prefeituras aumentaria para compensar as horas hoje
-trabalhadas além do limiar, se a jornada máxima fosse reduzida ao limiar
-escolhido.</p>
+<p>O fator <strong>13,3</strong> anualizador é composto por:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Componente</th>
+<th>Meses equivalentes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>12 meses de salário</td>
+<td>12,0</td>
+</tr>
+<tr class="even">
+<td>Décimo terceiro salário</td>
+<td>1,0</td>
+</tr>
+<tr class="odd">
+<td>Adicional de férias (1/3 de 1 salário)</td>
+<td>0,333</td>
+</tr>
+<tr class="even">
+<td><strong>Total</strong></td>
+<td><strong>13,3</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretação</strong>: representa o custo fiscal
+<strong>anual</strong> adicional que as prefeituras teriam para
+compensar as horas hoje trabalhadas além do limiar, considerando todos
+os encargos salariais obrigatórios, se a jornada máxima fosse reduzida
+ao limiar escolhido.</p>
 <blockquote>
 <p>Somente vínculos CLT são incluídos porque a legislação que limita
 jornadas por escala de trabalho (6×1) afeta tipicamente contratos
@@ -1831,8 +1859,10 @@ estimado</h2>
 <p><span class="math display">\[\text{Total}_m = \text{Impacto direto}_m
 + \text{Impacto indireto}_m\]</span></p>
 <p>Este valor representa uma estimativa do aumento do custo fiscal
-mensal do município <span class="math inline">\(m\)</span> decorrente da
-implantação da escala 6×1 com o limiar de jornada escolhido.</p>
+<strong>anual</strong> do município <span class="math inline">\(m\)</span> decorrente da implantação da escala 6×1
+com o limiar de jornada escolhido. O impacto direto já inclui o fator
+13,3 (anualização completa com 13º e adicional de férias); o impacto
+indireto baseia-se na despesa anual de terceirização do SICONFI.</p>
 <hr />
 </div>
 </div>

@@ -435,7 +435,7 @@ Promise.all([
     );
 
     const campoExc   = limiar === "36" ? "massa_salarial_excedente_36" : "massa_salarial_excedente_40";
-    const impactoDireto = d3.sum(raisRows, r => r[campoExc]);
+    const impactoDireto = d3.sum(raisRows, r => r[campoExc]) * 13.3;
 
     // --- Impacto indireto: último ano SICONFI × proporção × taxa ---
     const siconfiRows = siconfiMap.get(siconfiId) || [];
@@ -464,7 +464,7 @@ Promise.all([
     };
 
     addRow(
-      `Impacto direto — folha CLT (exc. ${limiar}h)`,
+      `Impacto direto — folha CLT (exc. ${limiar}h) × 13,3 salários`,
       temDireto ? impactoDireto : null
     );
     addRow(
@@ -472,12 +472,12 @@ Promise.all([
       temIndireto ? impactoIndireto : null,
       "indirect-row"
     );
-    addRow("Impacto fiscal total estimado (mensal)", temDireto || temIndireto ? total : null, "total-row");
+    addRow("Impacto fiscal total estimado (anual)", temDireto || temIndireto ? total : null, "total-row");
 
     // Nota de rodapé
     container.append("p")
       .style("font-size", "10px").style("color", "#888").style("margin-top", "8px")
-      .text(`Valores em R$ de ${ultimoAno ? ultimoAno.ano : "—"} (SICONFI deflacionado para 2024). Impacto direto: custo mensal da jornada CLT acima de ${limiar}h/sem. Impacto indireto: despesa total com terceirização × participação da folha nos custos do setor × taxa de impacto estimada.`);
+      .text(`Valores em R$ de 2024. Impacto direto: custo da jornada CLT acima de ${limiar}h/sem × 13,3 (12 meses + décimo terceiro + adicional de férias). Impacto indireto (anual): despesa total com terceirização do último ano SICONFI × participação da folha nos custos do setor × taxa de impacto estimada.`);
   }
 
   // Stacked bar chart: elemento_34/36/39 by year
