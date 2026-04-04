@@ -1,0 +1,189 @@
+---
+title: "Metodologia — Impacto da Escala 6×1 nas Contas Municipais"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Contexto
+
+A escala de trabalho 6×1 (seis dias de trabalho por um de folga) é uma das mais comuns no Brasil, especialmente em setores como comércio varejista, alimentação, saúde e limpeza. Uma eventual obrigatoriedade de redução da jornada semanal máxima para 36 horas teria impacto direto sobre a folha de pagamento de empregadores — incluindo as prefeituras brasileiras — e impacto indireto sobre os contratos de terceirização de serviços.
+
+Este dashboard apresenta o **impacto direto** da mudança nas contas municipais, com base nos dados da RAIS 2024 e do SICONFI. O impacto indireto está em desenvolvimento.
+
+---
+
+# Impacto Direto — RAIS
+
+## Fonte de dados
+
+**RAIS — Relação Anual de Informações Sociais** (Ministério do Trabalho e Emprego), ano-base **2024**.
+
+Os dados foram extraídos ao nível de município, com desagregação por:
+
+- `grupo_vinculo`: tipo de vínculo empregatício (Estatutário, CLT, Avulso/temporário/aprendiz)
+- `grupo_natureza_juridica`: natureza jurídica do empregador (Administração direta municipal, Administração indireta municipal, Privado, etc.)
+
+## Variáveis utilizadas
+
+| Variável | Descrição |
+|---|---|
+| `qtd_vinculos` | Quantidade total de vínculos ativos |
+| `massa_salarial` | Soma dos salários mensais (R$) |
+| `vinculos_36h_mais` | Vínculos com jornada declarada ≥ 36h/semana |
+| `vinculos_40h_mais` | Vínculos com jornada declarada ≥ 40h/semana |
+| `horas_excedentes_36` | Total de horas acima de 36h/semana (mensais) |
+| `horas_excedentes_40` | Total de horas acima de 40h/semana (mensais) |
+| `massa_salarial_excedente_36` | Custo salarial proporcional às horas acima de 36h (R$) |
+| `massa_salarial_excedente_40` | Custo salarial proporcional às horas acima de 40h (R$) |
+
+## Cálculo do excedente salarial
+
+As horas excedentes e o custo salarial excedente são calculados com base na jornada contratual declarada e na remuneração média do vínculo:
+
+$$\text{Horas excedentes}_{36} = \max(0,\ \text{jornada semanal} - 36) \times \frac{52}{12}$$
+
+$$\text{Massa salarial excedente}_{36} = \text{Remuneração} \times \frac{\text{Horas excedentes}_{36}}{\text{Horas mensais totais}}$$
+
+O mesmo cálculo se aplica ao limiar de 40h/semana.
+
+## Indicador do mapa coroplético
+
+O mapa coloriza os municípios pelo **percentual da massa salarial excedente ao limite de 40h** em relação à massa salarial total da administração pública municipal:
+
+$$\text{Indicador} = \frac{\sum \text{massa\_salarial\_excedente\_40}}{\sum \text{massa\_salarial}}$$
+
+Este indicador representa a fração da folha de pagamento das prefeituras que corresponderia ao custo do tempo trabalhado acima de 40h/semana — ou seja, o impacto fiscal direto máximo da mudança para escala 6×1 com limite de 40h.
+
+### Categorias do mapa
+
+| Faixa | Interpretação |
+|---|---|
+| 0 – 5% | Impacto baixo |
+| 5 – 10% | Impacto moderado |
+| 10 – 20% | Impacto alto |
+| > 20% | Impacto muito alto |
+
+O painel lateral exibe apenas vínculos da **Administração direta e indireta municipal**, que são os mais diretamente afetados por uma mudança legislativa sobre o funcionalismo público.
+
+---
+
+# Despesas de Terceirização — SICONFI
+
+## Fonte de dados
+
+**SICONFI — Sistema de Informações Contábeis e Fiscais do Setor Público Brasileiro** (Tesouro Nacional), anos **2018–2023**.
+
+## Elementos de despesa
+
+As despesas de terceirização são identificadas pelos seguintes elementos:
+
+| Elemento | Descrição |
+|---|---|
+| **34** — `3.1.90.34` | Outras despesas de pessoal decorrentes de contratos de terceirização (substitutos de mão de obra) |
+| **36** — `3.3.90.36` | Outros serviços de terceiros — pessoa física |
+| **39** — `3.3.90.39` | Outros serviços de terceiros — pessoa jurídica |
+
+A variável `terceirizacao_total` corresponde à soma dos três elementos.
+
+## Deflação
+
+Os valores monetários do SICONFI foram deflacionados para **R$ de 2024** utilizando o **IPCA** (Índice Nacional de Preços ao Consumidor Amplo — IBGE), obtido via API do SIDRA (tabela 1737, variável 2289 — número-índice mensal, base dezembro de 1993 = 100).
+
+O fator de deflação para cada ano $a$ é calculado como:
+
+$$\text{Fator}_a = \frac{\bar{I}_{2024}}{\bar{I}_a}$$
+
+onde $\bar{I}_a$ é a média aritmética do número-índice mensal do IPCA no ano $a$.
+
+## Visualizações do painel
+
+Para cada município são apresentados:
+
+1. **Gráfico de barras empilhadas** — evolução temporal (2018–2023) das despesas com terceirização desagregadas pelos elementos 34, 36 e 39, em R$ constantes de 2024.
+
+2. **Gráfico de linha** — participação percentual do gasto total com terceirização (`terceirizacao_total`) sobre a despesa total (`despesa_total`) do município a cada ano.
+
+3. **Tabela resumo** — valores anuais absolutos e percentuais, em R$ de 2024.
+
+---
+
+# Estimativa de Impacto Fiscal Total
+
+O dashboard apresenta uma estimativa interativa do impacto fiscal total da escala 6×1 para cada município, composta por duas parcelas: **impacto direto** e **impacto indireto**.
+
+## Parâmetros de cenário
+
+O usuário pode escolher três parâmetros:
+
+| Parâmetro | Opções | Descrição |
+|---|---|---|
+| **Limiar de jornada** | 36h ou 40h | Define o limiar a partir do qual horas/salário são considerados "excedentes" |
+| **% folha s/ custos totais do setor** | 75%, 85%, 95% | Participação da mão de obra nos custos operacionais totais do setor terceirizado |
+| **Impacto estimado no setor** | 6%, 8%, 10%, 12% | Percentual de aumento de custo que a mudança de jornada impõe ao setor terceirizado |
+
+## Cálculo do impacto direto
+
+O impacto direto mede o custo mensal da jornada **CLT** acima do limiar escolhido, restrito à **Administração direta e indireta municipal**:
+
+$$\text{Impacto direto}_m = \sum_{j \in \text{CLT, adm}} \text{massa\_salarial\_excedente}_{j,\ \theta}$$
+
+onde $\theta \in \{36h, 40h\}$ é o limiar escolhido e a soma é sobre todos os vínculos CLT da administração direta e indireta do município $m$.
+
+**Interpretação**: representa o quanto a folha de pagamento mensal das prefeituras aumentaria para compensar as horas hoje trabalhadas além do limiar, se a jornada máxima fosse reduzida ao limiar escolhido.
+
+> Somente vínculos CLT são incluídos porque a legislação que limita jornadas por escala de trabalho (6×1) afeta tipicamente contratos celetistas; servidores estatutários têm jornada definida em estatuto próprio.
+
+## Cálculo do impacto indireto
+
+O impacto indireto captura o efeito de segunda ordem: se os prestadores de serviço contratados pelas prefeituras também sofrerem aumento de custo com a mudança de jornada, isso pode ser repassado nos contratos.
+
+$$\text{Impacto indireto}_m = T_m \times \alpha \times \beta$$
+
+onde:
+
+- $T_m$ = despesa total com terceirização do município $m$ no último ano disponível do SICONFI (em R$ de 2024)
+- $\alpha$ = participação da folha de pagamentos nos custos totais do setor terceirizado (parâmetro de cenário: 75%, 85% ou 95%)
+- $\beta$ = taxa de impacto da mudança de jornada sobre os custos do setor terceirizado (parâmetro de cenário: 6%, 8%, 10% ou 12%)
+
+**Interpretação de $\alpha$**: se a folha representa 85% dos custos do prestador, então apenas 85% do contrato é sensível à mudança de jornada.
+
+**Interpretação de $\beta$**: se a jornada dos trabalhadores do setor excede o limiar em 8% da massa salarial (análogo ao impacto direto médio), o custo do prestador sobe 8% × $\alpha$.
+
+**Simplificações desta versão**:
+- $\alpha$ e $\beta$ são aplicados uniformemente a todos os contratos de terceirização, sem desagregação por setor (CNAE). A versão futura usará dados da PIA/PAC/PAS por CNAE divisão para parâmetros setoriais.
+- $T_m$ inclui elementos 34, 36 e 39, assumindo que todos estão sujeitos ao mesmo impacto.
+
+## Impacto fiscal total estimado
+
+$$\text{Total}_m = \text{Impacto direto}_m + \text{Impacto indireto}_m$$
+
+Este valor representa uma estimativa do aumento do custo fiscal mensal do município $m$ decorrente da implantação da escala 6×1 com o limiar de jornada escolhido.
+
+---
+
+# Impacto Indireto — Versão Futura (em desenvolvimento)
+
+A versão completa do impacto indireto desagregará $\alpha$ e $\beta$ por setor econômico (CNAE divisão), utilizando:
+
+1. **Peso da mão de obra por setor** — PIA, PAC e PAS (IBGE/SIDRA): participação dos gastos com pessoal no total dos custos do setor.
+2. **Contratos de terceirização por setor** — SICONFI com desagregação por função de governo.
+3. **Impacto direto no setor** — RAIS por CNAE.
+
+$$\text{Impacto indireto}_m = \sum_s T_{m,s} \times \alpha_s \times \beta_s$$
+
+---
+
+# Fontes
+
+- **RAIS 2024**: Ministério do Trabalho e Emprego — [mte.gov.br](https://www.gov.br/trabalho-e-emprego)
+- **SICONFI**: Tesouro Nacional — [siconfi.tesouro.gov.br](https://siconfi.tesouro.gov.br)
+- **IPCA**: IBGE/SIDRA — Tabela 1737 — [sidra.ibge.gov.br](https://sidra.ibge.gov.br/tabela/1737)
+- **Malha municipal**: IBGE — geometrias via pacote `geobr`

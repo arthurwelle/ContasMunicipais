@@ -1,0 +1,23 @@
+# Claude settings
+.claude/
+claude.txt
+
+# R analysis source files (not needed to run the web app)
+BIB/
+REF/
+Resultados/
+PIA_PAC_PAS.Rmd
+Siconfi.Rmd
+
+# Large duplicate geo file (PMTiles are used instead)
+GEO/municipios.geojson
+
+# Auxiliary RAIS files not used by the dashboard
+DADOS/Rais2024_qtd_NaturezaJuridica.csv
+DADOS/caged_municipios_6x1.csv
+
+# R artifacts
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj

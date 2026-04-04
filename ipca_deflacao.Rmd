@@ -1,0 +1,91 @@
+---
+title: "IPCA Anual (SIDRA) e Deflação do SICONFI"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Dependências
+
+```{r libs}
+library(sidrar)
+library(tidyverse)
+```
+
+## 1. Download IPCA anual via SIDRA
+
+Utiliza a tabela 1737 do SIDRA (IPCA — número-índice, base: dezembro 1993 = 100).
+A média anual dos índices mensais é usada como deflator.
+
+```{r ipca}
+ipca_mensal_raw <- get_sidra(
+  x        = 1737,
+  variable = 2266,        # Número-índice
+  period   = "201801-202412",
+  geo      = "Brazil"
+)
+
+ipca_mensal <- ipca_mensal_raw |>
+  transmute(
+    ano    = as.integer(substr(`Mês (Código)`, 1, 4)),
+    indice = Valor
+  )
+
+ipca_anual <- ipca_mensal |>
+  group_by(ano) |>
+  summarise(indice_medio = mean(indice, na.rm = TRUE), .groups = "drop")
+
+# Fator de deflação: base 2024
+indice_2024 <- ipca_anual |> filter(ano == 2024) |> pull(indice_medio)
+
+ipca_anual <- ipca_anual |>
+  mutate(fator_deflacao = indice_2024 / indice_medio)
+
+ipca_anual
+```
+
+```{r salvar_ipca}
+write_csv(ipca_anual, "DADOS/ipca_anual.csv")
+cat("Salvo: DADOS/ipca_anual.csv\n")
+```
+
+## 2. Deflação do SICONFI para valores de 2024
+
+```{r deflacionar}
+siconfi <- read_csv("DADOS/SICONFI_6x1.csv")
+
+cols_monetarias <- c("despesa_total", "elemento_34", "elemento_36",
+                     "elemento_39", "terceirizacao_total")
+
+siconfi_real <- siconfi |>
+  left_join(ipca_anual |> select(ano, fator_deflacao), by = "ano") |>
+  mutate(across(all_of(cols_monetarias), ~ . * fator_deflacao)) |>
+  select(-fator_deflacao)
+
+glimpse(siconfi_real)
+```
+
+```{r salvar_siconfi}
+write_csv(siconfi_real, "DADOS/SICONFI_6x1_real2024.csv")
+cat("Salvo: DADOS/SICONFI_6x1_real2024.csv\n")
+```
+
+## 3. Verificação
+
+```{r verificacao}
+# Comparar total terceirização nominal vs real (Brasil)
+bind_rows(
+  siconfi |>
+    group_by(ano) |>
+    summarise(terceirizacao = sum(terceirizacao_total, na.rm = TRUE)) |>
+    mutate(tipo = "Nominal"),
+  siconfi_real |>
+    group_by(ano) |>
+    summarise(terceirizacao = sum(terceirizacao_total, na.rm = TRUE)) |>
+    mutate(tipo = "Real (R$ 2024)")
+) |>
+  pivot_wider(names_from = tipo, values_from = terceirizacao) |>
+  mutate(across(where(is.numeric), ~ scales::dollar(., prefix = "R$ ", big.mark = ".", decimal.mark = ",")))
+```
