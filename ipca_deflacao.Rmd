@@ -72,7 +72,30 @@ write_csv(siconfi_real, "DADOS/SICONFI_6x1_real2024.csv")
 cat("Salvo: DADOS/SICONFI_6x1_real2024.csv\n")
 ```
 
-## 3. Verificação
+## 3. Deflação do SICONFI somente39 (novo arquivo)
+
+```{r deflacionar_somente39}
+siconfi39 <- read_delim(
+  "DADOS/SICONFI_6x1_novo_somente39.csv",
+  delim     = ";",
+  locale    = locale(decimal_mark = ",", grouping_mark = ".")
+)
+
+siconfi39_real <- siconfi39 |>
+  filter(ano <= 2024) |>
+  left_join(ipca_anual |> select(ano, fator_deflacao), by = "ano") |>
+  mutate(across(c(despesa_corrente_total, elemento_39), ~ . * fator_deflacao)) |>
+  select(-fator_deflacao)
+
+glimpse(siconfi39_real)
+```
+
+```{r salvar_somente39}
+write_csv(siconfi39_real, "DADOS/SICONFI_6x1_novo_somente39_real2024.csv")
+cat("Salvo: DADOS/SICONFI_6x1_novo_somente39_real2024.csv\n")
+```
+
+## 4. Verificação
 
 ```{r verificacao}
 # Comparar total terceirização nominal vs real (Brasil)

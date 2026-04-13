@@ -153,7 +153,12 @@ function clearSelection() {
 
 Promise.all([
   d3.csv("DADOS/rais_municipios_6x1.csv"),
-  d3.csv("DADOS/SICONFI_6x1_real2024.csv").catch(() => d3.csv("DADOS/SICONFI_6x1.csv"))
+  d3.csv("DADOS/SICONFI_6x1_novo_somente39_real2024.csv").catch(() => d3.csv("DADOS/SICONFI_6x1_novo_somente39.csv", r => ({
+      id_municipio:          r.id_municipio,
+      ano:                   r.ano,
+      despesa_corrente_total: parseFloat(String(r.despesa_corrente_total).replace(",",".")),
+      elemento_39:           parseFloat(String(r.elemento_39).replace(",","."))
+    })))
 ]).then(([raisRaw, siconfiRaw]) => {
 
   // --- Parse numeric columns ---
@@ -168,11 +173,11 @@ Promise.all([
     r.id_municipio = String(r.id_municipio).trim();
   });
 
-  const siconfiNumCols = ["despesa_total","elemento_34","elemento_36","elemento_39","terceirizacao_total"];
   siconfiRaw.forEach(r => {
-    siconfiNumCols.forEach(c => { r[c] = +r[c]; });
-    r.id_municipio = String(r.id_municipio).trim();
-    r.ano = +r.ano;
+    r.despesa_corrente_total = +r.despesa_corrente_total;
+    r.elemento_39            = +r.elemento_39;
+    r.id_municipio           = String(r.id_municipio).trim();
+    r.ano                    = +r.ano;
   });
 
   // --- Group by id_municipio ---
@@ -384,9 +389,6 @@ Promise.all([
   // SECTION 8: SICONFI CHARTS + TABLE
   // ============================================================
 
-  const stackColors  = { elemento_34: "#4e79a7", elemento_36: "#f28e2b", elemento_39: "#e15759" };
-  const stackLabels  = { elemento_34: "Elem. 34 — pessoal", elemento_36: "Elem. 36 — serv. pess. física", elemento_39: "Elem. 39 — serv. pess. jurídica" };
-
   function renderSiconfiSection(id) {
     const container = d3.select("#siconfi-content");
     container.html("");
@@ -395,7 +397,6 @@ Promise.all([
       container.append("p").attr("class", "no-data").text("Sem dados SICONFI para este município.");
       return;
     }
-    renderStackedBar(container, rows);
     renderRatioLine(container, rows);
     renderSiconfiTable(container, rows);
   }
@@ -440,7 +441,7 @@ Promise.all([
     // --- Impacto indireto: último ano SICONFI × proporção × taxa ---
     const siconfiRows = siconfiMap.get(siconfiId) || [];
     const ultimoAno   = siconfiRows.length > 0 ? siconfiRows[siconfiRows.length - 1] : null;
-    const terceirizacao = ultimoAno ? ultimoAno.terceirizacao_total : null;
+    const terceirizacao = ultimoAno ? ultimoAno.elemento_39 : null;
     const impactoIndireto = terceirizacao !== null ? terceirizacao * propFolha * taxaImp : null;
 
     const temDireto   = impactoDireto > 0 || raisRows.length > 0;
@@ -480,73 +481,19 @@ Promise.all([
       .text(`Valores em R$ de 2024. Impacto direto: custo da jornada CLT acima de ${limiar}h/sem × 13,3 (12 meses + décimo terceiro + adicional de férias). Impacto indireto (anual): despesa total com terceirização do último ano SICONFI × participação da folha nos custos do setor × taxa de impacto estimada.`);
   }
 
-  // Stacked bar chart: elemento_34/36/39 by year
-  function renderStackedBar(container, rows) {
-    const wrap = container.append("div").attr("class", "chart-wrap");
-    wrap.append("div").attr("class", "chart-title").text("Despesas de terceirização por tipo (R$)");
-
-    const margin = { top: 20, right: 14, bottom: 28, left: 60 };
-    const W = 420, H = 185;
-    const iW = W - margin.left - margin.right;
-    const iH = H - margin.top  - margin.bottom;
-
-    const keys   = ["elemento_34", "elemento_36", "elemento_39"];
-    const series = d3.stack().keys(keys)(rows);
-    const maxVal = d3.max(series, s => d3.max(s, d => d[1]));
-
-    const xScale = d3.scaleBand().domain(rows.map(r => r.ano)).range([0, iW]).padding(0.25);
-    const yScale = d3.scaleLinear().domain([0, maxVal * 1.05]).range([iH, 0]);
-
-    const svg = wrap.append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("preserveAspectRatio", "xMidYMid meet");
-    const g   = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    // Gridlines
-    g.append("g").selectAll("line")
-      .data(yScale.ticks(4)).enter().append("line").attr("class", "gridline")
-      .attr("x1", 0).attr("x2", iW).attr("y1", d => yScale(d)).attr("y2", d => yScale(d));
-
-    // Stacked bars
-    g.selectAll(".series")
-      .data(series).enter().append("g")
-      .attr("fill", s => stackColors[s.key])
-      .selectAll("rect").data(s => s).enter().append("rect")
-      .attr("x", d => xScale(d.data.ano))
-      .attr("y", d => yScale(d[1]))
-      .attr("height", d => yScale(d[0]) - yScale(d[1]))
-      .attr("width", xScale.bandwidth())
-      .on("mouseover", function(event, d) {
-        const key = d3.select(this.parentNode).datum().key;
-        showTooltip(`<strong>${d.data.ano}</strong><br>${stackLabels[key]}: ${fmtBRL(d[1] - d[0])}`, event);
-      })
-      .on("mousemove", event => moveTooltip(event))
-      .on("mouseout",  () => hideTooltip());
-
-    g.append("g").attr("class", "axis").attr("transform", `translate(0,${iH})`)
-      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
-    g.append("g").attr("class", "axis")
-      .call(d3.axisLeft(yScale).ticks(4).tickFormat(fmtAxis));
-
-    const leg = wrap.append("div").attr("class", "chart-legend");
-    keys.forEach(k => {
-      const span = leg.append("span");
-      span.append("span").attr("class", "swatch").style("background", stackColors[k]);
-      span.append("span").text(stackLabels[k]);
-    });
-  }
-
-  // Line chart: terceirizacao_total / despesa_total by year
+  // Line chart: elemento_39 / despesa_corrente_total by year
   function renderRatioLine(container, rows) {
     const wrap = container.append("div").attr("class", "chart-wrap");
-    wrap.append("div").attr("class", "chart-title").text("% Terceirização sobre despesa total");
+    wrap.append("div").attr("class", "chart-title").text("% Elem. 39 sobre despesa corrente total");
 
     const margin = { top: 16, right: 14, bottom: 28, left: 48 };
-    const W = 420, H = 160;
+    const W = 420, H = 120;
     const iW = W - margin.left - margin.right;
     const iH = H - margin.top  - margin.bottom;
 
     const data = rows.map(r => ({
       ano:   r.ano,
-      ratio: r.despesa_total > 0 ? r.terceirizacao_total / r.despesa_total : 0
+      ratio: r.despesa_corrente_total > 0 ? r.elemento_39 / r.despesa_corrente_total : 0
     }));
 
     const xScale = d3.scaleLinear().domain(d3.extent(data, d => d.ano)).range([0, iW]);
@@ -577,17 +524,14 @@ Promise.all([
 
   // SICONFI table
   const siconfiColumns = [
-    { key: "ano",                 label: "Ano",             fmt: d3.format("d") },
-    { key: "despesa_total",       label: "Despesa Total",   fmt: fmtBRL },
-    { key: "elemento_34",         label: "Elem. 34",        fmt: fmtBRL },
-    { key: "elemento_36",         label: "Elem. 36",        fmt: fmtBRL },
-    { key: "elemento_39",         label: "Elem. 39",        fmt: fmtBRL },
-    { key: "terceirizacao_total", label: "Total Terceiriz.", fmt: fmtBRL },
-    { key: "_pct",                label: "% Total",         fmt: fmtPct },
+    { key: "ano",                  label: "Ano",              fmt: d3.format("d") },
+    { key: "despesa_corrente_total", label: "Desp. Corrente", fmt: fmtBRL },
+    { key: "elemento_39",          label: "Elem. 39",         fmt: fmtBRL },
+    { key: "_pct",                 label: "% Desp.",          fmt: fmtPct },
   ];
 
   function renderSiconfiTable(container, rows) {
-    const data  = rows.map(r => ({ ...r, _pct: r.despesa_total > 0 ? r.terceirizacao_total / r.despesa_total : 0 }));
+    const data  = rows.map(r => ({ ...r, _pct: r.despesa_corrente_total > 0 ? r.elemento_39 / r.despesa_corrente_total : 0 }));
     const wrap  = container.append("div").attr("class", "data-table-wrap").style("margin-top", "10px");
     const table = wrap.append("table").attr("class", "data-table");
     table.append("thead").append("tr")
