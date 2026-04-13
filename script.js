@@ -153,11 +153,11 @@ function clearSelection() {
 
 Promise.all([
   d3.csv("DADOS/rais_municipios_6x1.csv"),
-  d3.csv("DADOS/SICONFI_6x1_novo_somente39_real2024.csv").catch(() => d3.csv("DADOS/SICONFI_6x1_novo_somente39.csv", r => ({
-      id_municipio:          r.id_municipio,
-      ano:                   r.ano,
+  d3.csv("DADOS/SICONFI_6x1_novo_somente39_real2024.csv").catch(() => d3.dsv(";", "DADOS/SICONFI_6x1_novo_somente39.csv", r => ({
+      id_municipio:           r.id_municipio,
+      ano:                    r.ano,
       despesa_corrente_total: parseFloat(String(r.despesa_corrente_total).replace(",",".")),
-      elemento_39:           parseFloat(String(r.elemento_39).replace(",","."))
+      elemento_39:            parseFloat(String(r.elemento_39).replace(",","."))
     })))
 ]).then(([raisRaw, siconfiRaw]) => {
 
