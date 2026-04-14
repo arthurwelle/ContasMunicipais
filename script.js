@@ -412,6 +412,7 @@ Promise.all([
   function renderResultado(raisId, siconfiId) {
     const container = d3.select("#resultado-content");
     container.html("");
+    try {
 
     // --- Vínculos CLT da administração direta + indireta ---
     const raisRows = (raisMap.get(raisId) || []).filter(r =>
@@ -483,6 +484,9 @@ Promise.all([
     container.append("p")
       .style("font-size", "10px").style("color", "#888").style("margin-top", "8px")
       .text(`Valores em R$ de 2024. Impacto direto: folha CLT excedente × 13,3 (12 meses + 13º + férias). Impacto indireto: Elem. 39 SICONFI (${anoRef}) × 3,5% (40h) ou × 10,7% (36h).`);
+    } catch (err) {
+      container.append("p").attr("class", "no-data").text("Erro ao calcular impacto: " + err.message);
+    }
   }
 
   // Line chart: elemento_39 / despesa_corrente_total by year
