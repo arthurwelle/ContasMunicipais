@@ -207,12 +207,27 @@ body {
   margin-top: 4px;
 }
 
+.resultado-table th {
+  background: #e8f2fb;
+  color: #1a3a5c;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 5px 8px;
+  text-align: right;
+  border-bottom: 2px solid #cce0f0;
+}
+
+.resultado-table th:first-child {
+  text-align: left;
+}
+
 .resultado-table td {
   padding: 6px 8px;
   border-bottom: 1px solid #e8f2fb;
 }
 
-.resultado-table td:last-child {
+.resultado-table td:nth-child(2),
+.resultado-table td:nth-child(3) {
   text-align: right;
   font-weight: bold;
   color: #1a3a5c;
@@ -225,7 +240,8 @@ body {
   font-size: 13px;
 }
 
-.resultado-table tr.total-row td:last-child {
+.resultado-table tr.total-row td:nth-child(2),
+.resultado-table tr.total-row td:nth-child(3) {
   color: #ffe600;
 }
 

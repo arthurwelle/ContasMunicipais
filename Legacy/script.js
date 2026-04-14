@@ -405,84 +405,80 @@ Promise.all([
   // SECTION 9: RESULTADO FISCAL
   // ============================================================
 
-  // Parâmetros fixos de impacto indireto por cenário
-  const TAXA_40H = 0.035;  // 3,5% — cenário 40h/semana
-  const TAXA_36H = 0.107;  // 10,7% — cenário 36h/semana (proposta 6×1)
+  // Seletores globais de cenário (persistem entre municípios)
+  document.getElementById('sel-limiar')   .addEventListener('change', () => refreshResultado());
+  document.getElementById('sel-proporcao').addEventListener('change', () => refreshResultado());
+  document.getElementById('sel-impacto')  .addEventListener('change', () => refreshResultado());
+
+  let _currentRaisId    = null;
+  let _currentSiconfiId = null;
+
+  function refreshResultado() {
+    if (_currentRaisId !== null) renderResultado(_currentRaisId, _currentSiconfiId);
+  }
 
   function renderResultado(raisId, siconfiId) {
+    _currentRaisId    = raisId;
+    _currentSiconfiId = siconfiId;
+
     const container = d3.select("#resultado-content");
     container.html("");
 
-    // --- Vínculos CLT da administração direta + indireta ---
+    const limiar    = document.getElementById('sel-limiar').value;     // "36" ou "40"
+    const propFolha = +document.getElementById('sel-proporcao').value; // 0.75 / 0.85 / 0.95
+    const taxaImp   = +document.getElementById('sel-impacto').value;   // 0.06 ... 0.12
+
+    // --- Impacto direto: somente CLT, adm direta + indireta ---
     const raisRows = (raisMap.get(raisId) || []).filter(r =>
       r.grupo_vinculo === "CLT" &&
       (r.grupo_natureza_juridica === "Administração direta municipal" ||
        r.grupo_natureza_juridica === "Administração indireta municipal")
     );
 
-    // --- Impacto direto para cada cenário ---
-    const direto40 = d3.sum(raisRows, r => r.massa_salarial_excedente_40) * 13.3;
-    const direto36 = d3.sum(raisRows, r => r.massa_salarial_excedente_36) * 13.3;
+    const campoExc   = limiar === "36" ? "massa_salarial_excedente_36" : "massa_salarial_excedente_40";
+    const impactoDireto = d3.sum(raisRows, r => r[campoExc]) * 13.3;
 
-    // --- Impacto indireto: Elem. 39 do último ano × taxa fixa ---
-    const siconfiRows  = siconfiMap.get(siconfiId) || [];
-    const ultimoAno    = siconfiRows.length > 0 ? siconfiRows[siconfiRows.length - 1] : null;
-    const elem39       = ultimoAno ? ultimoAno.elemento_39 : null;
-    const indireto40   = elem39 !== null ? elem39 * TAXA_40H : null;
-    const indireto36   = elem39 !== null ? elem39 * TAXA_36H : null;
+    // --- Impacto indireto: último ano SICONFI × proporção × taxa ---
+    const siconfiRows = siconfiMap.get(siconfiId) || [];
+    const ultimoAno   = siconfiRows.length > 0 ? siconfiRows[siconfiRows.length - 1] : null;
+    const terceirizacao = ultimoAno ? ultimoAno.elemento_39 : null;
+    const impactoIndireto = terceirizacao !== null ? terceirizacao * propFolha * taxaImp : null;
 
-    const temDireto   = raisRows.length > 0;
-    const temIndireto = elem39 !== null;
+    const temDireto   = impactoDireto > 0 || raisRows.length > 0;
+    const temIndireto = impactoIndireto !== null;
 
     if (!temDireto && !temIndireto) {
       container.append("p").attr("class", "no-data").text("Sem dados suficientes para estimar o impacto.");
       return;
     }
 
-    const total40 = (direto40 || 0) + (indireto40 || 0);
-    const total36 = (direto36 || 0) + (indireto36 || 0);
-    const anoRef  = ultimoAno ? ultimoAno.ano : "—";
+    const total = (impactoDireto || 0) + (impactoIndireto || 0);
 
-    // Tabela com duas colunas de cenário
     const table = container.append("table").attr("class", "resultado-table");
-    const thead = table.append("thead");
-    const hrow  = thead.append("tr");
-    hrow.append("th").text("");
-    hrow.append("th").text("Cenário 40h (CLT padrão)");
-    hrow.append("th").text("Cenário 36h (proposta 6×1)");
-
     const tbody = table.append("tbody");
 
-    const addRow = (label, v40, v36, cls) => {
+    const addRow = (label, valor, cls) => {
       const tr = tbody.append("tr");
       if (cls) tr.attr("class", cls);
       tr.append("td").text(label);
-      tr.append("td").text(v40 !== null ? fmtBRL(v40) : "—");
-      tr.append("td").text(v36 !== null ? fmtBRL(v36) : "—");
+      tr.append("td").text(valor !== null ? fmtBRL(valor) : "—");
     };
 
     addRow(
-      "Impacto direto — folha CLT excedente × 13,3",
-      temDireto ? direto40 : null,
-      temDireto ? direto36 : null
+      `Impacto direto — folha CLT (exc. ${limiar}h) × 13,3 salários`,
+      temDireto ? impactoDireto : null
     );
     addRow(
-      `Impacto indireto — terceirização (${anoRef}) × taxa`,
-      temIndireto ? indireto40 : null,
-      temIndireto ? indireto36 : null,
+      `Impacto indireto — terceirização (${ultimoAno ? ultimoAno.ano : "—"}) × ${Math.round(propFolha*100)}% × ${Math.round(taxaImp*100)}%`,
+      temIndireto ? impactoIndireto : null,
       "indirect-row"
     );
-    addRow(
-      "Impacto fiscal total estimado (anual)",
-      temDireto || temIndireto ? total40 : null,
-      temDireto || temIndireto ? total36 : null,
-      "total-row"
-    );
+    addRow("Impacto fiscal total estimado (anual)", temDireto || temIndireto ? total : null, "total-row");
 
     // Nota de rodapé
     container.append("p")
       .style("font-size", "10px").style("color", "#888").style("margin-top", "8px")
-      .text(`Valores em R$ de 2024. Impacto direto: folha CLT excedente × 13,3 (12 meses + 13º + férias). Impacto indireto: Elem. 39 SICONFI (${anoRef}) × 3,5% (40h) ou × 10,7% (36h).`);
+      .text(`Valores em R$ de 2024. Impacto direto: custo da jornada CLT acima de ${limiar}h/sem × 13,3 (12 meses + décimo terceiro + adicional de férias). Impacto indireto (anual): despesa total com terceirização do último ano SICONFI × participação da folha nos custos do setor × taxa de impacto estimada.`);
   }
 
   // Line chart: elemento_39 / despesa_corrente_total by year

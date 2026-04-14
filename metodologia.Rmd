@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 A escala de trabalho 6×1 (seis dias de trabalho por um de folga) é uma das mais comuns no Brasil, especialmente em setores como comércio varejista, alimentação, saúde e limpeza. Uma eventual obrigatoriedade de redução da jornada semanal máxima para 36 horas teria impacto direto sobre a folha de pagamento de empregadores — incluindo as prefeituras brasileiras — e impacto indireto sobre os contratos de terceirização de serviços.
 
-Este dashboard apresenta o **impacto direto** da mudança nas contas municipais, com base nos dados da RAIS 2024 e do SICONFI. O impacto indireto está em desenvolvimento.
+Este dashboard apresenta o **impacto direto e indireto** da mudança nas contas municipais, com base nos dados da RAIS 2024 e do SICONFI.
 
 ---
 
@@ -81,17 +81,15 @@ O painel lateral exibe apenas vínculos da **Administração direta e indireta m
 
 **SICONFI — Sistema de Informações Contábeis e Fiscais do Setor Público Brasileiro** (Tesouro Nacional), anos **2018–2023**.
 
-## Elementos de despesa
+## Elemento de despesa utilizado
 
-As despesas de terceirização são identificadas pelos seguintes elementos:
+As despesas de terceirização são identificadas pelo **Elemento 39**:
 
 | Elemento | Descrição |
 |---|---|
-| **34** — `3.1.90.34` | Outras despesas de pessoal decorrentes de contratos de terceirização (substitutos de mão de obra) |
-| **36** — `3.3.90.36` | Outros serviços de terceiros — pessoa física |
 | **39** — `3.3.90.39` | Outros serviços de terceiros — pessoa jurídica |
 
-A variável `terceirizacao_total` corresponde à soma dos três elementos.
+Este elemento captura os contratos de terceirização de serviços com pessoas jurídicas, que constituem a principal rubrica de terceirização dos municípios brasileiros.
 
 ## Deflação
 
@@ -107,35 +105,28 @@ onde $\bar{I}_a$ é a média aritmética do número-índice mensal do IPCA no an
 
 Para cada município são apresentados:
 
-1. **Gráfico de barras empilhadas** — evolução temporal (2018–2023) das despesas com terceirização desagregadas pelos elementos 34, 36 e 39, em R$ constantes de 2024.
+1. **Gráfico de linha** — participação percentual do Elemento 39 (`elemento_39`) sobre a despesa corrente total do município a cada ano, em R$ constantes de 2024.
 
-2. **Gráfico de linha** — participação percentual do gasto total com terceirização (`terceirizacao_total`) sobre a despesa total (`despesa_total`) do município a cada ano.
-
-3. **Tabela resumo** — valores anuais absolutos e percentuais, em R$ de 2024.
+2. **Tabela resumo** — valores anuais do Elemento 39 e despesa corrente total, com percentual, em R$ de 2024.
 
 ---
 
 # Estimativa de Impacto Fiscal Total
 
-O dashboard apresenta uma estimativa interativa do impacto fiscal total da escala 6×1 para cada município, composta por duas parcelas: **impacto direto** e **impacto indireto**.
+O dashboard apresenta uma estimativa do impacto fiscal total da escala 6×1 para cada município em **dois cenários fixos**, composta por duas parcelas: **impacto direto** e **impacto indireto**.
 
-## Parâmetros de cenário
-
-O usuário pode escolher três parâmetros:
-
-| Parâmetro | Opções | Descrição |
+| Cenário | Limiar de jornada | Taxa de impacto indireto |
 |---|---|---|
-| **Limiar de jornada** | 36h ou 40h | Define o limiar a partir do qual horas/salário são considerados "excedentes" |
-| **% folha s/ custos totais do setor** | 75%, 85%, 95% | Participação da mão de obra nos custos operacionais totais do setor terceirizado |
-| **Impacto estimado no setor** | 6%, 8%, 10%, 12% | Percentual de aumento de custo que a mudança de jornada impõe ao setor terceirizado |
+| **40h** | 40 horas/semana (CLT padrão) | 3,5% |
+| **36h** | 36 horas/semana (proposta 6×1) | 10,7% |
 
 ## Cálculo do impacto direto
 
-O impacto direto mede o custo mensal da jornada **CLT** acima do limiar escolhido, restrito à **Administração direta e indireta municipal**:
+O impacto direto mede o custo da jornada **CLT** acima do limiar, restrito à **Administração direta e indireta municipal**:
 
-$$\text{Impacto direto}_m = \left(\sum_{j \in \text{CLT, adm}} \text{massa\_salarial\_excedente}_{j,\ \theta}\right) \times 13{,}3$$
+$$\text{Impacto direto}_m^{\theta} = \left(\sum_{j \in \text{CLT, adm}} \text{massa\_salarial\_excedente}_{j,\ \theta}\right) \times 13{,}3$$
 
-onde $\theta \in \{36h, 40h\}$ é o limiar escolhido e a soma é sobre todos os vínculos CLT da administração direta e indireta do município $m$.
+onde $\theta \in \{36h, 40h\}$ é o limiar do cenário e a soma é sobre todos os vínculos CLT da administração direta e indireta do município $m$.
 
 O fator **13,3** anualizador é composto por:
 
@@ -146,47 +137,30 @@ O fator **13,3** anualizador é composto por:
 | Adicional de férias (1/3 de 1 salário) | 0,333 |
 | **Total** | **13,3** |
 
-**Interpretação**: representa o custo fiscal **anual** adicional que as prefeituras teriam para compensar as horas hoje trabalhadas além do limiar, considerando todos os encargos salariais obrigatórios, se a jornada máxima fosse reduzida ao limiar escolhido.
+**Interpretação**: representa o custo fiscal **anual** adicional que as prefeituras teriam para compensar as horas hoje trabalhadas além do limiar, se a jornada máxima fosse reduzida ao limiar do cenário.
 
 > Somente vínculos CLT são incluídos porque a legislação que limita jornadas por escala de trabalho (6×1) afeta tipicamente contratos celetistas; servidores estatutários têm jornada definida em estatuto próprio.
 
 ## Cálculo do impacto indireto
 
-O impacto indireto captura o efeito de segunda ordem: se os prestadores de serviço contratados pelas prefeituras também sofrerem aumento de custo com a mudança de jornada, isso pode ser repassado nos contratos.
+O impacto indireto captura o efeito de segunda ordem: prestadores de serviço contratados pelas prefeituras também sofrerão aumento de custo com a mudança de jornada, o que tende a ser repassado nos contratos.
 
-$$\text{Impacto indireto}_m = T_m \times \alpha \times \beta$$
+$$\text{Impacto indireto}_m^{\theta} = T_m \times \tau_{\theta}$$
 
 onde:
 
-- $T_m$ = despesa total com terceirização do município $m$ no último ano disponível do SICONFI (em R$ de 2024)
-- $\alpha$ = participação da folha de pagamentos nos custos totais do setor terceirizado (parâmetro de cenário: 75%, 85% ou 95%)
-- $\beta$ = taxa de impacto da mudança de jornada sobre os custos do setor terceirizado (parâmetro de cenário: 6%, 8%, 10% ou 12%)
+- $T_m$ = despesa com **Elemento 39** (outros serv. de terceiros — pessoa jurídica) do município $m$ no último ano disponível do SICONFI (em R$ de 2024)
+- $\tau_{\theta}$ = taxa de impacto fixada por cenário:
+  - $\tau_{40h} = 3{,}5\%$
+  - $\tau_{36h} = 10{,}7\%$
 
-**Interpretação de $\alpha$**: se a folha representa 85% dos custos do prestador, então apenas 85% do contrato é sensível à mudança de jornada.
-
-**Interpretação de $\beta$**: se a jornada dos trabalhadores do setor excede o limiar em 8% da massa salarial (análogo ao impacto direto médio), o custo do prestador sobe 8% × $\alpha$.
-
-**Simplificações desta versão**:
-- $\alpha$ e $\beta$ são aplicados uniformemente a todos os contratos de terceirização, sem desagregação por setor (CNAE). A versão futura usará dados da PIA/PAC/PAS por CNAE divisão para parâmetros setoriais.
-- $T_m$ inclui elementos 34, 36 e 39, assumindo que todos estão sujeitos ao mesmo impacto.
+**Derivação da taxa**: a taxa $\tau$ é obtida como produto da participação da folha de pagamentos nos custos totais do setor terceirizado ($\alpha$) pela fração da massa salarial que corresponde a horas acima do limiar ($\beta$): $\tau = \alpha \times \beta$. Os valores adotados refletem estimativas medianas para $\alpha = 85\%$ e $\beta$ calibrado no impacto direto médio observado nos dados da RAIS.
 
 ## Impacto fiscal total estimado
 
-$$\text{Total}_m = \text{Impacto direto}_m + \text{Impacto indireto}_m$$
+$$\text{Total}_m^{\theta} = \text{Impacto direto}_m^{\theta} + \text{Impacto indireto}_m^{\theta}$$
 
-Este valor representa uma estimativa do aumento do custo fiscal **anual** do município $m$ decorrente da implantação da escala 6×1 com o limiar de jornada escolhido. O impacto direto já inclui o fator 13,3 (anualização completa com 13º e adicional de férias); o impacto indireto baseia-se na despesa anual de terceirização do SICONFI.
-
----
-
-# Impacto Indireto — Versão Futura (em desenvolvimento)
-
-A versão completa do impacto indireto desagregará $\alpha$ e $\beta$ por setor econômico (CNAE divisão), utilizando:
-
-1. **Peso da mão de obra por setor** — PIA, PAC e PAS (IBGE/SIDRA): participação dos gastos com pessoal no total dos custos do setor.
-2. **Contratos de terceirização por setor** — SICONFI com desagregação por função de governo.
-3. **Impacto direto no setor** — RAIS por CNAE.
-
-$$\text{Impacto indireto}_m = \sum_s T_{m,s} \times \alpha_s \times \beta_s$$
+Este valor representa uma estimativa do aumento do custo fiscal **anual** do município $m$ no cenário $\theta$. O impacto direto inclui o fator 13,3 (anualização com 13º e adicional de férias); o impacto indireto baseia-se na despesa anual do Elemento 39 do SICONFI.
 
 ---
 

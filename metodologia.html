@@ -1528,9 +1528,9 @@ redução da jornada semanal máxima para 36 horas teria impacto direto
 sobre a folha de pagamento de empregadores — incluindo as prefeituras
 brasileiras — e impacto indireto sobre os contratos de terceirização de
 serviços.</p>
-<p>Este dashboard apresenta o <strong>impacto direto</strong> da mudança
-nas contas municipais, com base nos dados da RAIS 2024 e do SICONFI. O
-impacto indireto está em desenvolvimento.</p>
+<p>Este dashboard apresenta o <strong>impacto direto e indireto</strong>
+da mudança nas contas municipais, com base nos dados da RAIS 2024 e do
+SICONFI.</p>
 <hr />
 </div>
 <div id="impacto-direto-rais" class="section level1" number="2">
@@ -1657,11 +1657,11 @@ Terceirização — SICONFI</h1>
 Público Brasileiro</strong> (Tesouro Nacional), anos
 <strong>2018–2023</strong>.</p>
 </div>
-<div id="elementos-de-despesa" class="section level2" number="3.2">
-<h2><span class="header-section-number">3.2</span> Elementos de
-despesa</h2>
-<p>As despesas de terceirização são identificadas pelos seguintes
-elementos:</p>
+<div id="elemento-de-despesa-utilizado" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> Elemento de despesa
+utilizado</h2>
+<p>As despesas de terceirização são identificadas pelo <strong>Elemento
+39</strong>:</p>
 <table>
 <colgroup>
 <col width="50%" />
@@ -1675,22 +1675,14 @@ elementos:</p>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>34</strong> — <code>3.1.90.34</code></td>
-<td>Outras despesas de pessoal decorrentes de contratos de terceirização
-(substitutos de mão de obra)</td>
-</tr>
-<tr class="even">
-<td><strong>36</strong> — <code>3.3.90.36</code></td>
-<td>Outros serviços de terceiros — pessoa física</td>
-</tr>
-<tr class="odd">
 <td><strong>39</strong> — <code>3.3.90.39</code></td>
 <td>Outros serviços de terceiros — pessoa jurídica</td>
 </tr>
 </tbody>
 </table>
-<p>A variável <code>terceirizacao_total</code> corresponde à soma dos
-três elementos.</p>
+<p>Este elemento captura os contratos de terceirização de serviços com
+pessoas jurídicas, que constituem a principal rubrica de terceirização
+dos municípios brasileiros.</p>
 </div>
 <div id="deflação" class="section level2" number="3.3">
 <h2><span class="header-section-number">3.3</span> Deflação</h2>
@@ -1710,15 +1702,11 @@ aritmética do número-índice mensal do IPCA no ano <span class="math inline">\
 painel</h2>
 <p>Para cada município são apresentados:</p>
 <ol style="list-style-type: decimal">
-<li><p><strong>Gráfico de barras empilhadas</strong> — evolução temporal
-(2018–2023) das despesas com terceirização desagregadas pelos elementos
-34, 36 e 39, em R$ constantes de 2024.</p></li>
 <li><p><strong>Gráfico de linha</strong> — participação percentual do
-gasto total com terceirização (<code>terceirizacao_total</code>) sobre a
-despesa total (<code>despesa_total</code>) do município a cada
-ano.</p></li>
-<li><p><strong>Tabela resumo</strong> — valores anuais absolutos e
-percentuais, em R$ de 2024.</p></li>
+Elemento 39 (<code>elemento_39</code>) sobre a despesa corrente total do
+município a cada ano, em R$ constantes de 2024.</p></li>
+<li><p><strong>Tabela resumo</strong> — valores anuais do Elemento 39 e
+despesa corrente total, com percentual, em R$ de 2024.</p></li>
 </ol>
 <hr />
 </div>
@@ -1726,60 +1714,44 @@ percentuais, em R$ de 2024.</p></li>
 <div id="estimativa-de-impacto-fiscal-total" class="section level1" number="4">
 <h1><span class="header-section-number">4</span> Estimativa de Impacto
 Fiscal Total</h1>
-<p>O dashboard apresenta uma estimativa interativa do impacto fiscal
-total da escala 6×1 para cada município, composta por duas parcelas:
-<strong>impacto direto</strong> e <strong>impacto indireto</strong>.</p>
-<div id="parâmetros-de-cenário" class="section level2" number="4.1">
-<h2><span class="header-section-number">4.1</span> Parâmetros de
-cenário</h2>
-<p>O usuário pode escolher três parâmetros:</p>
+<p>O dashboard apresenta uma estimativa do impacto fiscal total da
+escala 6×1 para cada município em <strong>dois cenários fixos</strong>,
+composta por duas parcelas: <strong>impacto direto</strong> e
+<strong>impacto indireto</strong>.</p>
 <table>
-<colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
-</colgroup>
 <thead>
 <tr class="header">
-<th>Parâmetro</th>
-<th>Opções</th>
-<th>Descrição</th>
+<th>Cenário</th>
+<th>Limiar de jornada</th>
+<th>Taxa de impacto indireto</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Limiar de jornada</strong></td>
-<td>36h ou 40h</td>
-<td>Define o limiar a partir do qual horas/salário são considerados
-“excedentes”</td>
+<td><strong>40h</strong></td>
+<td>40 horas/semana (CLT padrão)</td>
+<td>3,5%</td>
 </tr>
 <tr class="even">
-<td><strong>% folha s/ custos totais do setor</strong></td>
-<td>75%, 85%, 95%</td>
-<td>Participação da mão de obra nos custos operacionais totais do setor
-terceirizado</td>
-</tr>
-<tr class="odd">
-<td><strong>Impacto estimado no setor</strong></td>
-<td>6%, 8%, 10%, 12%</td>
-<td>Percentual de aumento de custo que a mudança de jornada impõe ao
-setor terceirizado</td>
+<td><strong>36h</strong></td>
+<td>36 horas/semana (proposta 6×1)</td>
+<td>10,7%</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div id="cálculo-do-impacto-direto" class="section level2" number="4.2">
-<h2><span class="header-section-number">4.2</span> Cálculo do impacto
+<div id="cálculo-do-impacto-direto" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> Cálculo do impacto
 direto</h2>
-<p>O impacto direto mede o custo mensal da jornada <strong>CLT</strong>
-acima do limiar escolhido, restrito à <strong>Administração direta e
-indireta municipal</strong>:</p>
-<p><span class="math display">\[\text{Impacto direto}_m = \left(\sum_{j
-\in \text{CLT, adm}} \text{massa\_salarial\_excedente}_{j,\
-\theta}\right) \times 13{,}3\]</span></p>
+<p>O impacto direto mede o custo da jornada <strong>CLT</strong> acima
+do limiar, restrito à <strong>Administração direta e indireta
+municipal</strong>:</p>
+<p><span class="math display">\[\text{Impacto direto}_m^{\theta} =
+\left(\sum_{j \in \text{CLT, adm}}
+\text{massa\_salarial\_excedente}_{j,\ \theta}\right) \times
+13{,}3\]</span></p>
 <p>onde <span class="math inline">\(\theta \in \{36h, 40h\}\)</span> é o
-limiar escolhido e a soma é sobre todos os vínculos CLT da administração
-direta e indireta do município <span class="math inline">\(m\)</span>.</p>
+limiar do cenário e a soma é sobre todos os vínculos CLT da
+administração direta e indireta do município <span class="math inline">\(m\)</span>.</p>
 <p>O fator <strong>13,3</strong> anualizador é composto por:</p>
 <table>
 <thead>
@@ -1809,9 +1781,8 @@ direta e indireta do município <span class="math inline">\(m\)</span>.</p>
 </table>
 <p><strong>Interpretação</strong>: representa o custo fiscal
 <strong>anual</strong> adicional que as prefeituras teriam para
-compensar as horas hoje trabalhadas além do limiar, considerando todos
-os encargos salariais obrigatórios, se a jornada máxima fosse reduzida
-ao limiar escolhido.</p>
+compensar as horas hoje trabalhadas além do limiar, se a jornada máxima
+fosse reduzida ao limiar do cenário.</p>
 <blockquote>
 <p>Somente vínculos CLT são incluídos porque a legislação que limita
 jornadas por escala de trabalho (6×1) afeta tipicamente contratos
@@ -1819,72 +1790,49 @@ celetistas; servidores estatutários têm jornada definida em estatuto
 próprio.</p>
 </blockquote>
 </div>
-<div id="cálculo-do-impacto-indireto" class="section level2" number="4.3">
-<h2><span class="header-section-number">4.3</span> Cálculo do impacto
+<div id="cálculo-do-impacto-indireto" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> Cálculo do impacto
 indireto</h2>
-<p>O impacto indireto captura o efeito de segunda ordem: se os
-prestadores de serviço contratados pelas prefeituras também sofrerem
-aumento de custo com a mudança de jornada, isso pode ser repassado nos
-contratos.</p>
-<p><span class="math display">\[\text{Impacto indireto}_m = T_m \times
-\alpha \times \beta\]</span></p>
+<p>O impacto indireto captura o efeito de segunda ordem: prestadores de
+serviço contratados pelas prefeituras também sofrerão aumento de custo
+com a mudança de jornada, o que tende a ser repassado nos contratos.</p>
+<p><span class="math display">\[\text{Impacto indireto}_m^{\theta} = T_m
+\times \tau_{\theta}\]</span></p>
 <p>onde:</p>
 <ul>
-<li><span class="math inline">\(T_m\)</span> = despesa total com
-terceirização do município <span class="math inline">\(m\)</span> no
-último ano disponível do SICONFI (em R$ de 2024)</li>
-<li><span class="math inline">\(\alpha\)</span> = participação da folha
-de pagamentos nos custos totais do setor terceirizado (parâmetro de
-cenário: 75%, 85% ou 95%)</li>
-<li><span class="math inline">\(\beta\)</span> = taxa de impacto da
-mudança de jornada sobre os custos do setor terceirizado (parâmetro de
-cenário: 6%, 8%, 10% ou 12%)</li>
+<li><span class="math inline">\(T_m\)</span> = despesa com
+<strong>Elemento 39</strong> (outros serv. de terceiros — pessoa
+jurídica) do município <span class="math inline">\(m\)</span> no último
+ano disponível do SICONFI (em R$ de 2024)</li>
+<li><span class="math inline">\(\tau_{\theta}\)</span> = taxa de impacto
+fixada por cenário:
+<ul>
+<li><span class="math inline">\(\tau_{40h} = 3{,}5\%\)</span></li>
+<li><span class="math inline">\(\tau_{36h} = 10{,}7\%\)</span></li>
+</ul></li>
 </ul>
-<p><strong>Interpretação de <span class="math inline">\(\alpha\)</span></strong>: se a folha representa
-85% dos custos do prestador, então apenas 85% do contrato é sensível à
-mudança de jornada.</p>
-<p><strong>Interpretação de <span class="math inline">\(\beta\)</span></strong>: se a jornada dos
-trabalhadores do setor excede o limiar em 8% da massa salarial (análogo
-ao impacto direto médio), o custo do prestador sobe 8% × <span class="math inline">\(\alpha\)</span>.</p>
-<p><strong>Simplificações desta versão</strong>: - <span class="math inline">\(\alpha\)</span> e <span class="math inline">\(\beta\)</span> são aplicados uniformemente a todos
-os contratos de terceirização, sem desagregação por setor (CNAE). A
-versão futura usará dados da PIA/PAC/PAS por CNAE divisão para
-parâmetros setoriais. - <span class="math inline">\(T_m\)</span> inclui
-elementos 34, 36 e 39, assumindo que todos estão sujeitos ao mesmo
-impacto.</p>
+<p><strong>Derivação da taxa</strong>: a taxa <span class="math inline">\(\tau\)</span> é obtida como produto da
+participação da folha de pagamentos nos custos totais do setor
+terceirizado (<span class="math inline">\(\alpha\)</span>) pela fração
+da massa salarial que corresponde a horas acima do limiar (<span class="math inline">\(\beta\)</span>): <span class="math inline">\(\tau
+= \alpha \times \beta\)</span>. Os valores adotados refletem estimativas
+medianas para <span class="math inline">\(\alpha = 85\%\)</span> e <span class="math inline">\(\beta\)</span> calibrado no impacto direto médio
+observado nos dados da RAIS.</p>
 </div>
-<div id="impacto-fiscal-total-estimado" class="section level2" number="4.4">
-<h2><span class="header-section-number">4.4</span> Impacto fiscal total
+<div id="impacto-fiscal-total-estimado" class="section level2" number="4.3">
+<h2><span class="header-section-number">4.3</span> Impacto fiscal total
 estimado</h2>
-<p><span class="math display">\[\text{Total}_m = \text{Impacto direto}_m
-+ \text{Impacto indireto}_m\]</span></p>
+<p><span class="math display">\[\text{Total}_m^{\theta} = \text{Impacto
+direto}_m^{\theta} + \text{Impacto indireto}_m^{\theta}\]</span></p>
 <p>Este valor representa uma estimativa do aumento do custo fiscal
-<strong>anual</strong> do município <span class="math inline">\(m\)</span> decorrente da implantação da escala 6×1
-com o limiar de jornada escolhido. O impacto direto já inclui o fator
-13,3 (anualização completa com 13º e adicional de férias); o impacto
-indireto baseia-se na despesa anual de terceirização do SICONFI.</p>
+<strong>anual</strong> do município <span class="math inline">\(m\)</span> no cenário <span class="math inline">\(\theta\)</span>. O impacto direto inclui o fator
+13,3 (anualização com 13º e adicional de férias); o impacto indireto
+baseia-se na despesa anual do Elemento 39 do SICONFI.</p>
 <hr />
 </div>
 </div>
-<div id="impacto-indireto-versão-futura-em-desenvolvimento" class="section level1" number="5">
-<h1><span class="header-section-number">5</span> Impacto Indireto —
-Versão Futura (em desenvolvimento)</h1>
-<p>A versão completa do impacto indireto desagregará <span class="math inline">\(\alpha\)</span> e <span class="math inline">\(\beta\)</span> por setor econômico (CNAE divisão),
-utilizando:</p>
-<ol style="list-style-type: decimal">
-<li><strong>Peso da mão de obra por setor</strong> — PIA, PAC e PAS
-(IBGE/SIDRA): participação dos gastos com pessoal no total dos custos do
-setor.</li>
-<li><strong>Contratos de terceirização por setor</strong> — SICONFI com
-desagregação por função de governo.</li>
-<li><strong>Impacto direto no setor</strong> — RAIS por CNAE.</li>
-</ol>
-<p><span class="math display">\[\text{Impacto indireto}_m = \sum_s
-T_{m,s} \times \alpha_s \times \beta_s\]</span></p>
-<hr />
-</div>
-<div id="fontes" class="section level1" number="6">
-<h1><span class="header-section-number">6</span> Fontes</h1>
+<div id="fontes" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Fontes</h1>
 <ul>
 <li><strong>RAIS 2024</strong>: Ministério do Trabalho e Emprego — <a href="https://www.gov.br/trabalho-e-emprego">mte.gov.br</a></li>
 <li><strong>SICONFI</strong>: Tesouro Nacional — <a href="https://siconfi.tesouro.gov.br">siconfi.tesouro.gov.br</a></li>

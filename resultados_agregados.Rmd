@@ -23,11 +23,15 @@ fmt_brl <- function(x) {
   )
 }
 
-fmt_pct <- function(x) paste0(number(x * 100, accuracy = 0.1, decimal.mark = ","), "%")
+fmt_pct <- function(x) paste0(number(x * 100, accuracy = 0.01, decimal.mark = ","), "%")
+
+# Taxas fixas de impacto indireto por cenário
+TAXA_40H <- 0.035   # 3,5%
+TAXA_36H <- 0.107   # 10,7%
 ```
 
 ```{r dados}
-# RAIS 2024
+# RAIS 2024 — somente CLT, adm direta + indireta municipal
 rais <- read_csv("DADOS/rais_municipios_6x1.csv") |>
   filter(
     grupo_vinculo == "CLT",
@@ -36,7 +40,7 @@ rais <- read_csv("DADOS/rais_municipios_6x1.csv") |>
     !is.na(id_municipio)
   )
 
-# SICONFI deflacionado (somente39)
+# SICONFI deflacionado (somente Elemento 39)
 siconfi_path <- if (file.exists("DADOS/SICONFI_6x1_novo_somente39_real2024.csv"))
   "DADOS/SICONFI_6x1_novo_somente39_real2024.csv" else
   "DADOS/SICONFI_6x1_novo_somente39.csv"
@@ -51,113 +55,72 @@ else
 
 ultimo_ano_siconfi <- max(siconfi$ano)
 
-# Último ano do SICONFI por município (para impacto indireto)
-siconfi_ultimo <- siconfi |>
-  filter(ano == ultimo_ano_siconfi)
-
-# Totais nacionais SICONFI (último ano)
-total_elem39    <- sum(siconfi_ultimo$elemento_39,           na.rm = TRUE)
+# Último ano do SICONFI — totais nacionais
+siconfi_ultimo <- siconfi |> filter(ano == ultimo_ano_siconfi)
+total_elem39    <- sum(siconfi_ultimo$elemento_39,            na.rm = TRUE)
 total_desp_corr <- sum(siconfi_ultimo$despesa_corrente_total, na.rm = TRUE)
 
-# Impacto direto nacional
-direto_36 <- sum(rais$massa_salarial_excedente_36, na.rm = TRUE) * 13.3
+# Impacto direto nacional (× 13,3 para anualizar)
 direto_40 <- sum(rais$massa_salarial_excedente_40, na.rm = TRUE) * 13.3
+direto_36 <- sum(rais$massa_salarial_excedente_36, na.rm = TRUE) * 13.3
+
+# Impacto indireto nacional
+indireto_40 <- total_elem39 * TAXA_40H
+indireto_36 <- total_elem39 * TAXA_36H
+
+# Totais
+total_40 <- direto_40 + indireto_40
+total_36 <- direto_36 + indireto_36
 ```
 
 # Contexto
 
-Esta página apresenta os resultados agregados para o **Brasil** do impacto fiscal estimado da escala de trabalho 6×1. Os cálculos seguem a metodologia descrita na [página de metodologia](metodologia.html) e utilizam:
+Esta página apresenta os resultados agregados para o **Brasil** do impacto fiscal estimado da escala de trabalho 6×1. Os cálculos seguem a [metodologia](metodologia.html) e utilizam:
 
 - **RAIS 2024** — vínculos CLT da Administração direta e indireta municipal
-- **SICONFI `r ultimo_ano_siconfi`** (em R$ de 2024) — despesas com Elemento 39 (outros serv. de terceiros — pessoa jurídica) e despesa corrente total
+- **SICONFI `r ultimo_ano_siconfi`** (em R$ de 2024) — Elemento 39 (outros serv. de terceiros — pessoa jurídica) e despesa corrente total
+
+São apresentados dois cenários fixos:
+
+| Cenário | Limiar de jornada | Taxa de impacto indireto |
+|---|---|---|
+| **40h** | 40 horas/semana (CLT padrão) | 3,5% |
+| **36h** | 36 horas/semana (proposta 6×1) | 10,7% |
 
 ---
 
-# Impacto Direto
-
-O impacto direto corresponde ao custo **anual** da folha de pagamento CLT dos municípios relacionado às horas trabalhadas acima do limiar de jornada, multiplicado por 13,3 para capturar 12 salários + 13º + adicional de férias.
-
-```{r tabela_direto}
-tibble(
-  Cenário              = c("Limiar 36h/semana", "Limiar 40h/semana"),
-  `Impacto Direto (R$)` = c(fmt_brl(direto_36), fmt_brl(direto_40))
-) |>
-  kable(align = c("l","r")) |>
-  kable_styling(bootstrap_options = c("striped","hover","condensed"), full_width = FALSE)
-```
-
----
-
-# Impacto Indireto — Grade de Cenários
-
-O impacto indireto é calculado como:
-
-$$\text{Elem. 39 nacional} \times \alpha \times \beta$$
-
-onde $\alpha$ = participação da folha nos custos do setor e $\beta$ = taxa de impacto da mudança de jornada.
+# Resultados por Componente
 
 **Elem. 39 total nacional (`r ultimo_ano_siconfi`):** `r fmt_brl(total_elem39)`
 
-```{r grade_indireto}
-props   <- c(0.75, 0.85, 0.95)
-taxas   <- c(0.06, 0.08, 0.10, 0.12)
-
-grade <- expand_grid(prop = props, taxa = taxas) |>
-  mutate(indireto = total_elem39 * prop * taxa) |>
-  mutate(
-    col_label = paste0("α=", prop * 100, "%"),
-    row_label = paste0("β=", taxa * 100, "%")
-  ) |>
-  select(row_label, col_label, indireto) |>
-  pivot_wider(names_from = col_label, values_from = indireto) |>
-  rename(`Impacto indireto` = row_label) |>
-  mutate(across(where(is.numeric), fmt_brl))
-
-grade |>
-  kable(align = c("l","r","r","r")) |>
-  kable_styling(bootstrap_options = c("striped","hover","condensed"), full_width = FALSE)
-```
-
----
-
-# Impacto Total e % sobre Despesa Corrente
-
-Impacto total = Impacto direto + Impacto indireto.
-Percentual calculado sobre a despesa corrente total nacional do último ano SICONFI.
-
 **Despesa corrente total nacional (`r ultimo_ano_siconfi`):** `r fmt_brl(total_desp_corr)`
 
-```{r tabela_total}
-params <- list(
-  list(limiar="36h", direto=direto_36),
-  list(limiar="40h", direto=direto_40)
-)
-
-linhas <- map_dfr(params, function(p) {
-  expand_grid(prop = props, taxa = taxas) |>
-    mutate(
-      Limiar    = p$limiar,
-      Direto    = p$direto,
-      Indireto  = total_elem39 * prop * taxa,
-      Total     = Direto + Indireto,
-      `% Desp.` = Total / total_desp_corr,
-      `α`       = paste0(prop * 100, "%"),
-      `β`       = paste0(taxa * 100, "%")
-    )
-})
-
-linhas |>
-  select(Limiar, `α`, `β`, Direto, Indireto, Total, `% Desp.`) |>
-  mutate(
-    Direto   = fmt_brl(Direto),
-    Indireto = fmt_brl(Indireto),
-    Total    = fmt_brl(Total),
-    `% Desp.`= fmt_pct(`% Desp.`)
-  ) |>
-  kable(align = c("l","c","c","r","r","r","r")) |>
+```{r tabela_resultados}
+tibble(
+  Componente = c(
+    "Impacto direto — folha CLT excedente × 13,3",
+    "Impacto indireto — Elem. 39 × taxa",
+    "Impacto fiscal total estimado (anual)",
+    "% sobre despesa corrente total"
+  ),
+  `Cenário 40h` = c(
+    fmt_brl(direto_40),
+    fmt_brl(indireto_40),
+    fmt_brl(total_40),
+    fmt_pct(total_40 / total_desp_corr)
+  ),
+  `Cenário 36h` = c(
+    fmt_brl(direto_36),
+    fmt_brl(indireto_36),
+    fmt_brl(total_36),
+    fmt_pct(total_36 / total_desp_corr)
+  )
+) |>
+  kable(align = c("l","r","r")) |>
   kable_styling(bootstrap_options = c("striped","hover","condensed","bordered"),
-                full_width = TRUE) |>
-  collapse_rows(columns = 1:2, valign = "middle")
+                full_width = FALSE) |>
+  row_spec(3, bold = TRUE, background = "#1a3a5c", color = "white") |>
+  row_spec(4, italic = TRUE, color = "#555")
 ```
 
 ---
@@ -166,5 +129,5 @@ linhas |>
 
 - Valores em **R$ de 2024** (SICONFI deflacionado pelo IPCA médio anual via SIDRA tabela 1737).
 - O impacto direto usa somente vínculos **CLT** da Administração direta e indireta municipal (RAIS 2024).
-- O impacto indireto usa somente o **Elemento 39** (outros serv. de terceiros — pessoa jurídica) do SICONFI do ano `r ultimo_ano_siconfi`.
-- Veja a [metodologia completa](metodologia.html) para detalhes dos parâmetros α e β.
+- O impacto indireto usa o **Elemento 39** do SICONFI do ano `r ultimo_ano_siconfi` multiplicado pela taxa fixa do cenário (3,5% para 40h; 10,7% para 36h).
+- Veja a [metodologia completa](metodologia.html) para a derivação das taxas.
